@@ -28,10 +28,9 @@ public extension View {
      ```
      */
     func attachPartialSheetToRoot() -> some View {
-        let sheetManager: PSManager = PSManager()
-        return self
-            .modifier(PartialSheet())
-            .environmentObject(sheetManager)
+        modifier(
+            PartialSheetAttachmentModifier()
+        )
     }
 
     /**
@@ -57,5 +56,15 @@ public extension View {
             content: content,
             parent: self
         )
+    }
+}
+
+private struct PartialSheetAttachmentModifier: ViewModifier {
+    @StateObject var manager = PSManager()
+
+    func body(content: Content) -> some View {
+        content
+            .modifier(PartialSheet())
+            .environmentObject(manager)
     }
 }
