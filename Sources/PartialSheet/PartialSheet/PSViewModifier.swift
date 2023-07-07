@@ -28,6 +28,8 @@ struct PartialSheet: ViewModifier {
 
     /// The rect containing the presenter
     @State private var presenterContentRect: CGRect = .zero
+
+    @State var clipsContent = true
     
     /// The point for the top anchor
     var topAnchor: CGFloat {
@@ -164,6 +166,9 @@ extension PartialSheet {
         // content
         let sheetContent = self.manager.content
             .trackFrame()
+            .onPreferenceChange(ClippingPreferenceKey.self) { preference in
+                clipsContent = preference.isClipping
+            }
         
         return ZStack {
             
@@ -242,13 +247,42 @@ extension PartialSheet {
                     }
                 }
                 .frame(width: UIScreen.main.bounds.width)
-                .background(self.background)
-                .cornerRadius(iPhoneStyle.cornerRadius)
+                .background {
+                    background
+                        .clipShape(
+                            CornerShape(
+                                radius: !clipsContent ? iPhoneStyle.cornerRadius : 0,
+                                corners: [.topLeft, .topRight]
+                            )
+                        )
+                }
+                .ifIs(clipsContent) {
+                    $0
+                        .cornerRadius(iPhoneStyle.cornerRadius)
+
+                }
                 .shadow(color: Color(.sRGBLinear, white: 0, opacity: 0.13), radius: 10.0)
                 .offset(y: self.sheetPosition)
                 .onTapGesture {}
                 .gesture(drag)
             }
+        }
+    }
+
+    private struct CornerShape: Shape {
+        var radius: CGFloat
+        var corners: UIRectCorner
+
+        func path(in rect: CGRect) -> Path {
+            let path = UIBezierPath(
+                roundedRect: rect,
+                byRoundingCorners: corners,
+                cornerRadii: .init(
+                    width: radius,
+                    height: radius
+                )
+            )
+            return .init(path.cgPath)
         }
     }
 
