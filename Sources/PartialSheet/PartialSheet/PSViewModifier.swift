@@ -31,6 +31,7 @@ struct PartialSheet: ViewModifier {
 
     @State var clipsContent = true
     @State var overlayPolicy = OverlayInteractionPolicy.default
+    @State var gesturePolicy = GesturePolicy.default
     
     /// The point for the top anchor
     var topAnchor: CGFloat {
@@ -173,6 +174,9 @@ extension PartialSheet {
             .onPreferenceChange(OverlayInteractionPolicyPreferenceKey.self) { preference in
                 overlayPolicy = preference.value ?? .default
             }
+            .onPreferenceChange(GesturePolicyPreferenceKey.self) { preference in
+                gesturePolicy = preference.value ?? .default
+            }
         
         return ZStack {
             
@@ -274,7 +278,7 @@ extension PartialSheet {
                 .shadow(color: Color(.sRGBLinear, white: 0, opacity: 0.13), radius: 10.0)
                 .offset(y: self.sheetPosition)
                 .onTapGesture {}
-                .gesture(drag)
+                .gesture(gesturePolicy == .dragToDismiss ? drag : nil)
             }
         }
     }

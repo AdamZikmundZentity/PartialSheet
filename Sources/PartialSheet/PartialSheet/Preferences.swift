@@ -43,7 +43,7 @@ extension View {
 
 enum OverlayInteractionPolicyPreferenceKey: PreferenceKey {
     typealias Value = ExplicitBox<OverlayInteractionPolicy>
-    
+
     static var defaultValue = ExplicitBox<OverlayInteractionPolicy>.default
 
     static func reduce(value: inout Value, nextValue: () -> Value) {
@@ -64,6 +64,34 @@ extension View {
     ) -> some View {
         preference(
             key: OverlayInteractionPolicyPreferenceKey.self,
+            value: .explicit(policy)
+        )
+    }
+}
+
+enum GesturePolicyPreferenceKey: PreferenceKey {
+    typealias Value = ExplicitBox<GesturePolicy>
+
+    static var defaultValue = ExplicitBox<GesturePolicy>.default
+
+    static func reduce(value: inout Value, nextValue: () -> Value) {
+        value.reduce(using: nextValue)
+    }
+}
+
+public enum GesturePolicy {
+    case dragToDismiss
+    case none
+
+    static let `default` = dragToDismiss
+}
+
+extension View {
+    public func partialSheetGesturePolicy(
+        _ policy: GesturePolicy
+    ) -> some View {
+        preference(
+            key: GesturePolicyPreferenceKey.self,
             value: .explicit(policy)
         )
     }
