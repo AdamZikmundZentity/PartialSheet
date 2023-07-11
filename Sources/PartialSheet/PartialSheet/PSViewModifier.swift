@@ -30,6 +30,7 @@ struct PartialSheet: ViewModifier {
     @State private var presenterContentRect: CGRect = .zero
 
     @State var clipsContent = true
+    @State var overlayPolicy = OverlayInteractionPolicy.default
     
     /// The point for the top anchor
     var topAnchor: CGFloat {
@@ -167,7 +168,10 @@ extension PartialSheet {
         let sheetContent = self.manager.content
             .trackFrame()
             .onPreferenceChange(ClippingPreferenceKey.self) { preference in
-                clipsContent = preference.isClipping
+                clipsContent = preference.value ?? true
+            }
+            .onPreferenceChange(OverlayInteractionPolicyPreferenceKey.self) { preference in
+                overlayPolicy = preference.value ?? .default
             }
         
         return ZStack {
@@ -185,7 +189,13 @@ extension PartialSheet {
                     }
                 }
                 .edgesIgnoringSafeArea(.vertical)
-                .onTapGesture { dismissSheet() }
+                .onTapGesture {
+                    guard overlayPolicy == .dismiss else {
+                        return
+                    }
+
+                    dismissSheet()
+                }
             }
             
             // The SHEET VIEW
